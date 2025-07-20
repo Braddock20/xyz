@@ -1,2 +1,20 @@
 # Node modules
 node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Environment and secrets
+.env
+cookies.txt
+
+# Render/Vercel cache
+.cache/
+.vercel/
