@@ -1,13 +1,17 @@
 {
   "name": "yt-api",
   "version": "1.0.0",
+  "description": "YouTube API using youtube-dl-exec",
   "main": "server.js",
-  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
+  "keywords": [],
+  "author": "Braddock",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "youtube-dl-exec": "^2.2.4"
   }
 }
