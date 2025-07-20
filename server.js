@@ -8,10 +8,11 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
+// Path to your cookies.txt file (must exist in root of project)
 const cookiesPath = path.join(__dirname, 'cookies.txt');
 
 app.get('/', (req, res) => {
-  res.send(`<h1>✅ YouTube Downloader API with Cookies</h1>`);
+  res.send('<h2>✅ YouTube API Server is Live</h2>');
 });
 
 app.get('/info', async (req, res) => {
@@ -23,7 +24,7 @@ app.get('/info', async (req, res) => {
       dumpSingleJson: true,
       noWarnings: true,
       preferFreeFormats: true,
-      cookies: cookiesPath
+      cookies: cookiesPath,
     });
     res.json(info);
   } catch (err) {
@@ -35,14 +36,21 @@ app.get('/download', (req, res) => {
   const { url, format } = req.query;
   if (!url) return res.status(400).json({ error: 'Missing URL' });
 
-  const ytdlStream = youtubedl.raw(url, {
+  const stream = youtubedl.raw(url, {
     format: format === 'mp3' ? 'bestaudio' : 'bestvideo+bestaudio',
     output: '-',
-    cookies: cookiesPath
+    cookies: cookiesPath,
   });
 
-  res.setHeader('Content-Disposition', `attachment; filename="video.${format || 'mp4'}"`);
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="video.${format || 'mp4'}"`
+  );
   res.setHeader('Content-Type', format === 'mp3' ? 'audio/mpeg' : 'video/mp4');
 
-  ytdlStream.stdout.pipe(res);
+  stream.stdout.pipe(res);
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
