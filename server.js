@@ -1,54 +1,45 @@
-const express = require("express");
-const cors = require("cors");
-const { exec } = require("child_process");
-const path = require("path");
+const express = require('express');
+const cors = require('cors');
+const { exec } = require('child_process');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
-app.use(express.json());
 
-// Root check
-app.get("/", (req, res) => {
-  res.send("🎵 YouTube Downloader API is live!");
+// Home route
+app.get('/', (req, res) => {
+  res.send('<h2>YT-DLP API is running</h2><p>Use <code>/info?url=</code> to fetch video data.</p>');
 });
 
-// Get video info
-app.get("/info", (req, res) => {
-  const { url } = req.query;
-  if (!url) return res.status(400).send("Missing YouTube URL");
+// Info route (metadata only)
+app.get('/info', (req, res) => {
+  const videoURL = req.query.url;
+  if (!videoURL) return res.status(400).send({ error: 'Missing URL' });
 
-  exec(`yt-dlp --cookies ${path.join(__dirname, "cookies.txt")} -J "${url}"`, (err, stdout, stderr) => {
-    if (err) return res.status(500).json({ error: stderr });
+  exec(`yt-dlp -J --no-warnings ${videoURL}`, (err, stdout, stderr) => {
+    if (err) return res.status(500).send({ error: stderr || err.message });
     try {
       const info = JSON.parse(stdout);
-      res.json(info);
-    } catch (parseErr) {
-      res.status(500).json({ error: "Error parsing video info" });
+      res.send(info);
+    } catch (e) {
+      res.status(500).send({ error: 'Failed to parse video info' });
     }
   });
 });
 
-// Download or Stream
-app.get("/api/download", (req, res) => {
-  const { url, format } = req.query;
-  if (!url || !format) return res.status(400).send("Missing url or format");
+// Stream or download route
+app.get('/download', (req, res) => {
+  const { url, format = 'mp4' } = req.query;
+  if (!url) return res.status(400).send('Missing URL');
 
-  const mime = format === "mp3" ? "audio/mpeg" : "video/mp4";
-  const ytdlpArgs = format === "mp3"
-    ? '-f bestaudio --extract-audio --audio-format mp3'
-    : '-f bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4';
-
-  res.setHeader("Content-Type", mime);
-
-  const command = `yt-dlp --cookies ${path.join(__dirname, "cookies.txt")} ${ytdlpArgs} -o - "${url}"`;
-  const process = exec(command, { maxBuffer: 1024 * 1024 * 50 }); // 50MB stream
+  const mime = format === 'mp3' ? 'audio/mpeg' : 'video/mp4';
+  res.setHeader('Content-Type', mime);
+  const cmd = `yt-dlp -f bestaudio[ext=m4a]+bestvideo[ext=mp4]/best -o - ${url}`;
+  const process = exec(cmd);
 
   process.stdout.pipe(res);
-  process.stderr.on("data", data => console.error("Error:", data.toString()));
+  process.stderr.on('data', (data) => console.error(data.toString()));
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
