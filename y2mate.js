@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import cheerio from 'cheerio'
+import * as cheerio from 'cheerio'
 
 async function ytv(yutub) {
   const post = (url, formdata) =>
@@ -13,7 +13,9 @@ async function ytv(yutub) {
       body: new URLSearchParams(Object.entries(formdata)),
     })
 
-  const ytIdRegex = /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*v=|embed\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
+  const ytIdRegex =
+    /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*v=|embed\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
+
   const ytId = ytIdRegex.exec(yutub)
   if (!ytId) throw new Error('Invalid YouTube URL')
   const url = 'https://youtu.be/' + ytId[1]
@@ -26,6 +28,7 @@ async function ytv(yutub) {
 
   const mela = await res.json()
   const $ = cheerio.load(mela.result)
+
   const thumb = $('.thumbnail.cover > a > img').attr('src')
   const title = $('.thumbnail.cover > div > b').text()
   const quality = $('#mp4 > table > tbody > tr:nth-child(4) > td:nth-child(3) > a').attr('data-fquality')
@@ -63,7 +66,9 @@ async function yta(yutub) {
       body: new URLSearchParams(Object.entries(formdata)),
     })
 
-  const ytIdRegex = /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*v=|embed\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
+  const ytIdRegex =
+    /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*v=|embed\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
+
   const ytId = ytIdRegex.exec(yutub)
   if (!ytId) throw new Error('Invalid YouTube URL')
   const url = 'https://youtu.be/' + ytId[1]
@@ -76,6 +81,7 @@ async function yta(yutub) {
 
   const mela = await res.json()
   const $ = cheerio.load(mela.result)
+
   const thumb = $('.thumbnail.cover > a > img').attr('src')
   const title = $('.thumbnail.cover > div > b').text()
   const size = $('#mp3 > table > tbody > tr > td:nth-child(2)').text()
@@ -101,4 +107,4 @@ async function yta(yutub) {
   return { thumb, title, quality, tipe, size, output, link }
 }
 
-export { yta, ytv }
+export { ytv, yta }
