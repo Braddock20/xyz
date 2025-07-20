@@ -1,54 +1,48 @@
-const express = require('express');
-const cors = require('cors');
-const youtubedl = require('youtube-dl-exec');
-const path = require('path');
-
+const express = require("express");
+const cors = require("cors");
+const { exec } = require("child_process");
+const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+app.use(express.static("public"));
 
-// Path to your cookies.txt file (must exist in root of project)
-const cookiesPath = path.join(__dirname, 'cookies.txt');
-
-app.get('/', (req, res) => {
-  res.send('<h2>✅ YouTube API Server is Live</h2>');
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.get('/info', async (req, res) => {
-  const { url } = req.query;
-  if (!url) return res.status(400).json({ error: 'Missing URL' });
+app.get("/info", (req, res) => {
+  const videoUrl = req.query.url;
+  if (!videoUrl) return res.status(400).json({ error: "No URL provided" });
 
-  try {
-    const info = await youtubedl(url, {
-      dumpSingleJson: true,
-      noWarnings: true,
-      preferFreeFormats: true,
-      cookies: cookiesPath,
-    });
-    res.json(info);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/download', (req, res) => {
-  const { url, format } = req.query;
-  if (!url) return res.status(400).json({ error: 'Missing URL' });
-
-  const stream = youtubedl.raw(url, {
-    format: format === 'mp3' ? 'bestaudio' : 'bestvideo+bestaudio',
-    output: '-',
-    cookies: cookiesPath,
+  const cmd = `yt-dlp --dump-json --cookies cookies.txt "${videoUrl}"`;
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).json({ error: stderr || error.message });
+    }
+    try {
+      const info = JSON.parse(stdout);
+      res.json(info);
+    } catch (parseError) {
+      res.status(500).json({ error: "Failed to parse video info" });
+    }
   });
+});
 
-  res.setHeader(
-    'Content-Disposition',
-    `attachment; filename="video.${format || 'mp4'}"`
-  );
-  res.setHeader('Content-Type', format === 'mp3' ? 'audio/mpeg' : 'video/mp4');
+app.get("/download", (req, res) => {
+  const videoUrl = req.query.url;
+  const format = req.query.format || "mp3";
+  if (!videoUrl) return res.status(400).json({ error: "No URL provided" });
 
-  stream.stdout.pipe(res);
+  const fileFormat = format === "mp4" ? "mp4" : "bestaudio";
+  const cmd = `yt-dlp -f ${fileFormat} --cookies cookies.txt -o - "${videoUrl}"`;
+
+  const child = exec(cmd);
+  res.setHeader("Content-Disposition", `inline; filename="output.${format}"`);
+  child.stdout.pipe(res);
+  child.stderr.on("data", (err) => console.error(err.toString()));
+  child.on("error", () => res.status(500).json({ error: "Download failed" }));
 });
 
 app.listen(PORT, () => {
