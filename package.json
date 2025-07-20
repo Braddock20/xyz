@@ -1,14 +1,14 @@
 {
-  "name": "yt-api-server",
+  "name": "youtube-downloader-api",
   "version": "1.0.0",
-  "description": "YouTube API using youtube-dl-exec and cookies.txt support",
-  "main": "server.js",
+  "type": "module",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
+    "cheerio": "^1.0.0-rc.12",
     "express": "^4.18.2",
-    "youtube-dl-exec": "^1.2.3"
+    "node-fetch": "^3.3.2"
   }
 }
