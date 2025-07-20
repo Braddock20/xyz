@@ -1,17 +1,14 @@
 {
-  "name": "yt-api",
+  "name": "yt-api-server",
   "version": "1.0.0",
-  "description": "YouTube API using youtube-dl-exec",
+  "description": "YouTube API using youtube-dl-exec and cookies.txt support",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "Braddock",
-  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "youtube-dl-exec": "^2.2.4"
+    "youtube-dl-exec": "^2.6.0"
   }
 }
